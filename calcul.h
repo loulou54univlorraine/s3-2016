@@ -1,3 +1,0 @@
-#define LARGEUR_CARTE 24
-#define HAUTEUR_CARTE 24
-
