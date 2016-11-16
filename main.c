@@ -1,19 +1,15 @@
-/* */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include "moteur.h"
 #include "sdl.h"
-
-#define LARGEUR_ECRAN 640
+#define LARGEUR_ECRAN 600
 #define HAUTEUR_ECRAN 480
 #define NB_FRAMES_ENTRE_AFFICHAGES_FPS 2000
-
 int carte[LARGEUR_CARTE][HAUTEUR_CARTE]=
 {
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
   {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -23,9 +19,9 @@ int carte[LARGEUR_CARTE][HAUTEUR_CARTE]=
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
-  {1,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
@@ -36,34 +32,24 @@ int carte[LARGEUR_CARTE][HAUTEUR_CARTE]=
   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
 };
-
 int main() {
   int x;
-  double date_actuelle = 0,      
-         date_precedente = 0,   
-         temps_frame,           
-         temps_total,           
-         nombre_de_frames;  
-  
+  double date_actuelle = 0,
+  date_precedente = 0,
+  temps_frame,
+  temps_total,
+  nb_frames;
   sdl_ecran_init(LARGEUR_ECRAN,HAUTEUR_ECRAN);
-
   while(!sdl_fin()) {
-  
     for (x = 0; x < LARGEUR_ECRAN; x++)
-      moteur_dessiner(x,LARGEUR_ECRAN,HAUTEUR_ECRAN);
-
-
-    /* Calcul du nombre de frames par seconde */
+      moteur_dessiner_colonne(x,LARGEUR_ECRAN,HAUTEUR_ECRAN);
     date_precedente = date_actuelle;
     date_actuelle = sdl_date();
     temps_frame = (date_actuelle - date_precedente) / 1000.0;
     temps_total += temps_frame;
-    nombre_de_frames ++;
-
-    
+    nb_frames++;
     sdl_ecran_mise_a_jour();
-    moteur_gestion_des_actions(temps_total/nombre_de_frames);
+    moteur_gestion_actions(temps_total/nb_frames);
   }
-  
   return 0;
 }
