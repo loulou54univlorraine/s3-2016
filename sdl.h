@@ -8,3 +8,4 @@ int  sdl_touches_appuyee(int touche);
 int  sdl_fin();
 unsigned long sdl_date();
 
+

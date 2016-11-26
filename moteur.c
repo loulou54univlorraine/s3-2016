@@ -3,7 +3,7 @@
 #include <SDL/SDL.h>
 #include "moteur.h"
 #include "sdl.h"
-#define VITESSE_DEPLACEMENT 1
+#define VITESSE_DEPLACEMENT 5
 #define VITESSE_ROTATION 3
 #define texWidth 256
 #define texHeight 256
@@ -47,6 +47,7 @@ void moteur_dessiner_colonne(int x, int largeur, int hauteur) {
   double cameraX,
   perpWallDist;
   struct couleur color;
+
   RayPos.x = Pos.x;
   RayPos.y = Pos.y;
   cameraX = 2 * x / (double)(largeur) - 1;
@@ -104,16 +105,11 @@ void moteur_dessiner_colonne(int x, int largeur, int hauteur) {
   pixel_bas = hauteur_ligne / 2 + hauteur / 2;
   if(pixel_bas >= hauteur)
     pixel_bas = hauteur - 1;
-     //calculate value of wallX
-  double wallX;
-  if (type_cote == 0) {wallX = RayPos.y + perpWallDist * RayDir.y;
-  }
-  else    {    wallX = RayPos.x + perpWallDist * RayDir.x;
-  }
-  wallX -= floor((wallX));
-  int texX = (int)(wallX * (double)(texWidth));
-  if(type_cote == 0 && RayDir.x > 0) texX = texWidth - texX - 1;
-  if(type_cote == 1 && RayDir.y < 0) texX = texWidth - texX - 1;
+
+
+
+
+
   switch(carte[Carte.x][Carte.y]) {
     case 1:  color = rouge;   break;
     case 2:  color = vert;    break;
@@ -131,10 +127,29 @@ void moteur_dessiner_colonne(int x, int largeur, int hauteur) {
   }
   /*  on dessine la colonne de mur a l'ecran */
   sdl_ligne_verticale(x,pixel_haut,pixel_bas,color.rouge,color.vert,color.bleu);
-  sdl_ligne_verticale_texture(x,texX,type_cote,pixel_haut,pixel_bas,hauteur_ligne);
+ 
   sdl_ligne_verticale(x,0,pixel_haut,25,25,100);
   sdl_ligne_verticale(x,pixel_bas,hauteur-1,25,100,26);
+
+     //pour les textures
+  double wallX;
+  if (type_cote == 0) {wallX = RayPos.y + perpWallDist * RayDir.y;
+  }
+  else    {    wallX = RayPos.x + perpWallDist * RayDir.x;
+  }
+  wallX -= floor((wallX));
+  int texX = (int)(wallX * (double)(texWidth));
+  if(type_cote == 0 && RayDir.x > 0) texX = texWidth - texX - 1;
+  if(type_cote == 1 && RayDir.y < 0) texX = texWidth - texX - 1;
+
+
+ sdl_ligne_verticale_texture(x,texX,type_cote,pixel_haut,pixel_bas,hauteur_ligne);
+//pour les plafonds et les sols
+
+ 
 }
+
+
 void moteur_gestion_actions(double temps_frame) {
   double old_dirX, old_planX;
   double vitesse_dep;            /* Vitesse de deplacement en ligne */
@@ -145,25 +160,24 @@ void moteur_gestion_actions(double temps_frame) {
   sdl_touches_lire();
   /* Touche up : on se deplace vers l'avant si aucun mur devant soi */
   if (sdl_touches_appuyee(SDLK_UP )) {
-    if(carte[(int)(Pos.x + Dir.x * vitesse_dep)+1][(int)(Pos.y)] == 0)
-      Pos.x += Dir.x * vitesse_dep;
+   
+    if(carte[(int)(Pos.x + Dir.x * vitesse_dep)][(int)(Pos.y)] == 0)
+     Pos.x += Dir.x * vitesse_dep;
+   else Pos.x = (int)Pos.x + 0.5;
     if(carte[(int)(Pos.x)][(int)(Pos.y + Dir.y * vitesse_dep)] == 0)
       Pos.y += Dir.y * vitesse_dep;
+    else Pos.y= (int)Pos.y + 0.5;
   }
   /* Touche down : on se deplace vers l'arriere si aucun mur devant soi */
   if (sdl_touches_appuyee(SDLK_DOWN)) {
     if(carte[(int)(Pos.x - Dir.x * vitesse_dep)][(int)(Pos.y)] == 0)
       Pos.x -= Dir.x * vitesse_dep;
+    else Pos.x= (int)Pos.x + 0.5;
     if(carte[(int)(Pos.x)][(int)(Pos.y - Dir.y * vitesse_dep)] == 0)
       Pos.y -= Dir.y * vitesse_dep;
+    else Pos.y= (int)Pos.y + 0.5;
   }
   /* Touche down : on se deplace vers l'arriere si aucun mur devant soi */
-  if (sdl_touches_appuyee(SDLK_s)) {
-    if(carte[(int)(Pos.x - Dir.x * vitesse_dep)][(int)(Pos.y)] == 0)
-      Pos.x -= Dir.x * vitesse_dep;
-    if(carte[(int)(Pos.x)][(int)(Pos.y - Dir.y * vitesse_dep)] == 0)
-      Pos.y -= Dir.y * vitesse_dep;
-  }
   /* Touche droite : on se deplace vers la droite si aucun mur devant soi */
   if (sdl_touches_appuyee(SDLK_RIGHT)) {
     /* La direction ET le plan de la camera doivent effectuer la rotation */

@@ -1,0 +1,844 @@
+
+test commit
+# --------------
+# Please enter the commit message for your changes. Everything below
+# this paragraph is ignored, and an empty message aborts the commit.
+# Just close the window to accept your message.
+diff --git a/main.c b/main.c
+index 01d82ec..7a6bd7c 100644
+--- a/main.c
++++ b/main.c
+@@ -1,19 +1,15 @@
+-/* */
+-
+ #include <stdio.h>
+ #include <stdlib.h>
+ #include "moteur.h"
+ #include "sdl.h"
+-
+-#define LARGEUR_ECRAN 640
++#define LARGEUR_ECRAN 600
+ #define HAUTEUR_ECRAN 480
+ #define NB_FRAMES_ENTRE_AFFICHAGES_FPS 2000
+-
+ int carte[LARGEUR_CARTE][HAUTEUR_CARTE]=
+ {
+   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+-  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
++  {1,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,1},
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,0,0,0,0,0,2,2,2,2,2,0,0,0,0,3,0,3,0,3,0,0,0,1},
+   {1,0,0,0,0,0,2,0,0,0,2,0,0,0,0,0,0,0,0,0,0,0,0,1},
+@@ -23,9 +19,9 @@ int carte[LARGEUR_CARTE][HAUTEUR_CARTE]=
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+-  {1,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+-  {1,0,0,0,0,0,0,0,0,0,8,0,0,0,0,0,0,0,0,0,0,0,0,1},
++  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
++  {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,4,0,4,0,0,0,0,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+@@ -36,34 +32,24 @@ int carte[LARGEUR_CARTE][HAUTEUR_CARTE]=
+   {1,4,4,4,4,4,4,4,4,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1},
+   {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1}
+ };
+-
+ int main() {
+   int x;
+-  double date_actuelle = 0,      
+-         date_precedente = 0,   
+-         temps_frame,           
+-         temps_total,           
+-         nombre_de_frames;  
+-  
++  double date_actuelle = 0,
++  date_precedente = 0,
++  temps_frame,
++  temps_total,
++  nb_frames;
+   sdl_ecran_init(LARGEUR_ECRAN,HAUTEUR_ECRAN);
+-
+   while(!sdl_fin()) {
+-  
+     for (x = 0; x < LARGEUR_ECRAN; x++)
+-      moteur_dessiner(x,LARGEUR_ECRAN,HAUTEUR_ECRAN);
+-
+-
+-    /* Calcul du nombre de frames par seconde */
++      moteur_dessiner_colonne(x,LARGEUR_ECRAN,HAUTEUR_ECRAN);
+     date_precedente = date_actuelle;
+     date_actuelle = sdl_date();
+     temps_frame = (date_actuelle - date_precedente) / 1000.0;
+     temps_total += temps_frame;
+-    nombre_de_frames ++;
+-
+-    
++    nb_frames++;
+     sdl_ecran_mise_a_jour();
+-    moteur_gestion_des_actions(temps_total/nombre_de_frames);
++    moteur_gestion_actions(temps_total/nb_frames);
+   }
+-  
+   return 0;
+ }
+diff --git a/makefile b/makefile
+index 3d6198c..98bbd81 100644
+--- a/makefile
++++ b/makefile
+@@ -1,9 +1,8 @@
+ all: moteur.o sdl.o main.c moteur.h sdl.h
+-	gcc moteur.o sdl.o main.c  -lSDL -lSDL_image -lm -o moteur3D
+-
++	gcc moteur.o sdl.o main.c -lSDL -lSDL_image -lm -o moteur3D
+ 
+ moteur.o: moteur.c sdl.h
+-	gcc -c moteur.c 
++	gcc -c moteur.c -O3
+ 
+ sdl.o: sdl.c
+ 	gcc -c sdl.c -lSDL -lSDL_image 
+diff --git a/moteur.c b/moteur.c
+index 82a9a63..09df02a 100644
+--- a/moteur.c
++++ b/moteur.c
+@@ -1,153 +1,190 @@
+-/* 
+- */
+-
+ #include <stdlib.h>
+ #include <math.h>
+ #include <SDL/SDL.h>
+ #include "moteur.h"
+ #include "sdl.h"
+-
+-#define VITESSE_DEPLACEMENT 5   
+-#define VITESSE_ROTATION 3  
+-
+-
+-
+-
+-extern int carte[LARGEUR_CARTE][HAUTEUR_CARTE]; 
++#define VITESSE_DEPLACEMENT 1
++#define VITESSE_ROTATION 3
++#define texWidth 256
++#define texHeight 256
++extern int carte[LARGEUR_CARTE][HAUTEUR_CARTE];
++CoordonneesReel Pos ={10,12} ,Dir={-1,0},Plan ={0,0.60};
++CoordonneesReel RayPos={0,0},RayDir={0,0},BordDist ={0,0},DeltaDist ={0,0};
++Coordonnees Carte={0,0},Pas={0,0};
+ /* Structure de couleur RGB */
+ struct couleur {
+   int rouge;
+   int vert;
+   int bleu;
+ };
+-
+- /* Constantes couleur */
+-const  Couleur noir    = {  0,  0,  0};
+-const  Couleur rouge   = {255,  0,  0};
+-const  Couleur vert    = {  0,255,  0};
+-const  Couleur bleu    = {  0,  0,255};
+-const  Couleur blanc   = {255,255,255};
+-const  Couleur jaune   = {255,255,  0};
+-const  Couleur cyan    = {  0,255,255};
+-const  Couleur magenta = {255,  0,255};
+-const  Couleur gris    = {128,128,128};
+-const  Couleur marron  = {128,  0,  0};
+-const  Couleur violet  = {128,  0,128};
+-
+-Couleur moteur_demi_couleur(Couleur ancienne) {
+-  Couleur nouvelle;
++/* Constantes couleur */
++const struct couleur noir    = {  0,  0,  0};
++const struct couleur rouge   = {255,  0,  0};
++const struct couleur vert    = {  0,255,  0};
++const struct couleur bleu    = {  0,  0,255};
++const struct couleur blanc   = {255,255,255};
++const struct couleur jaune   = {255,255,  0};
++const struct couleur cyan    = {  0,255,255};
++const struct couleur magenta = {255,  0,255};
++const struct couleur gris    = {128,128,128};
++const struct couleur marron  = {128,  0,  0};
++const struct couleur violet  = {128,  0,128};
++struct couleur moteur_demi_couleur(struct couleur ancienne) {
++  struct couleur nouvelle;
+   nouvelle.rouge = ancienne.rouge / 2;
+   nouvelle.vert  = ancienne.vert  / 2;
+   nouvelle.bleu  = ancienne.bleu  / 2;
+   return nouvelle;
+-};
+-
+-struct coordoneReel
+-{
+-  double posX;
+-  double posY;
+-};
+-
+-coordoneReel->posX = 12;
+-coordoneReel->posY = 10;
+-
+-struct directionsRayon
+-{
+-  double dirX;
+-  double dirY;
+-};
+-
+-struct planCamera
+-{
+-  double planX;
+-  double planY;
+-};
+-
+-struct camera
+-{
+-  double cameraX;
+-};
+-
+-
+-struct positionRayon
+-{
+-  double rayPosX;
+-  double rayPosy;
+-};
+-
+-struct directionRayon
+-{
+-  double rayDirX;
+-  double rayDirY;
+-};
+-
+-struct positionCarte
+-{
+-int carteX;
+-int carteY;
+-};
+-
+-struct distanceBord
+-{
+-
+-double bordDistX;
+-double bordDistY;
+-  
+-};
+-
+-struct delta
+-{
+-  double deltaDistX ;
+-  double deltaDistY ;
+-};
+-
+-double perpWallDist;  /* Distance projetee sur la direction de la camera */
+-
++}
+ /*---------------  raycasting     ---------------*/
+-
+-void moteur_dessiner(int x, int largeur, int hauteur) {
+-
+-
+-
+- /* Couleur de la partie de mur a dessiner */
+-
+-  /* On calcule la position et la direction du rayon */
+- 
+-
++void moteur_dessiner_colonne(int x, int largeur, int hauteur) {
++  int
++  touche = 0,
++  type_cote,
++  hauteur_ligne,
++  pixel_haut,
++  pixel_bas;
++  double cameraX,
++  perpWallDist;
++  struct couleur color;
++  RayPos.x = Pos.x;
++  RayPos.y = Pos.y;
++  cameraX = 2 * x / (double)(largeur) - 1;
++  RayDir.x = Dir.x + Plan.x * cameraX;
++  RayDir.y = Dir.y + Plan.y * cameraX;
++  /* On calcule le carre de la carte dans lequel on est */
++  Carte.x = (int)(RayPos.x);
++  Carte.y = (int)(RayPos.y);
++  /* On calcule la longueur du rayon d'un cote x ou y a l'autre cote x ou y */
++  DeltaDist.x = sqrt(1 + (RayDir.y * RayDir.y) / (RayDir.x * RayDir.x));
++  DeltaDist.y = sqrt(1 + (RayDir.x * RayDir.x) / (RayDir.y * RayDir.y));
++  /* On calcule la direction vers laquelle on va et la longueur jusqu'au bord */
++  if (RayDir.x < 0) {
++    Pas.x = -1;
++    BordDist.x = (RayPos.x - Carte.x) * DeltaDist.x;
++  }
++  else {
++    Pas.x = 1;
++    BordDist.x = (Carte.x + 1.0 - RayPos.x) * DeltaDist.x;
++  }
++  if (RayDir.y < 0) {
++    Pas.y = -1;
++    BordDist.y = (RayPos.y - Carte.y) * DeltaDist.y;
++  }
++  else {
++    Pas.y = 1;
++    BordDist.y = (Carte.y + 1.0 - RayPos.y) * DeltaDist.y;
++  }
++  /* Coeur du raycasting */
++  while (touche == 0) {
++    if (BordDist.x < BordDist.y) {
++      BordDist.x += DeltaDist.x;
++      Carte.x += Pas.x;
++      type_cote = 0;
++    }
++    else {
++      BordDist.y += DeltaDist.y;
++      Carte.y += Pas.y;
++      type_cote = 1;
++    }
++    /* On regarde si on a frappe dans un mur */
++    if (carte[Carte.x][Carte.y] > 0)
++      touche = 1;
++  }
++  if (type_cote == 0)
++    perpWallDist = fabs((Carte.x - RayPos.x + (1 - Pas.x) / 2) / RayDir.x);
++  else
++    perpWallDist = fabs((Carte.y - RayPos.y + (1 - Pas.y) / 2) / RayDir.y);
++  /*  hauteur de la colonne de mur a dessiner a l'ecran */
++  hauteur_ligne = abs((int)(hauteur / perpWallDist));
++  /* On calcule le y du pixel du haut et du bas de la ligne de mur */
++  pixel_haut = -hauteur_ligne / 2 + hauteur / 2;
++  if(pixel_haut < 0)
++    pixel_haut = 0;
++  pixel_bas = hauteur_ligne / 2 + hauteur / 2;
++  if(pixel_bas >= hauteur)
++    pixel_bas = hauteur - 1;
++     //calculate value of wallX
++  double wallX;
++  if (type_cote == 0) {wallX = RayPos.y + perpWallDist * RayDir.y;
++  }
++  else    {    wallX = RayPos.x + perpWallDist * RayDir.x;
++  }
++  wallX -= floor((wallX));
++  int texX = (int)(wallX * (double)(texWidth));
++  if(type_cote == 0 && RayDir.x > 0) texX = texWidth - texX - 1;
++  if(type_cote == 1 && RayDir.y < 0) texX = texWidth - texX - 1;
++  switch(carte[Carte.x][Carte.y]) {
++    case 1:  color = rouge;   break;
++    case 2:  color = vert;    break;
++    case 3:  color = bleu;    break;
++    case 4:  color = blanc;   break;
++    case 5:  color = jaune;   break;
++    case 6:  color = cyan;    break;
++    case 7:  color = magenta; break;
++    case 8:  color = gris;    break;
++    case 9:  color = marron;  break;
++    default: color = violet;  break;
++  }
++  if (type_cote == 1) {
++    color = moteur_demi_couleur(color);
++  }
++  /*  on dessine la colonne de mur a l'ecran */
++  sdl_ligne_verticale(x,pixel_haut,pixel_bas,color.rouge,color.vert,color.bleu);
++  sdl_ligne_verticale_texture(x,texX,type_cote,pixel_haut,pixel_bas,hauteur_ligne);
++  sdl_ligne_verticale(x,0,pixel_haut,25,25,100);
++  sdl_ligne_verticale(x,pixel_bas,hauteur-1,25,100,26);
+ }
+-
+-void moteur_gestion_des_actions(double temps_frame) {
+-
+-
+-
++void moteur_gestion_actions(double temps_frame) {
++  double old_dirX, old_planX;
++  double vitesse_dep;            /* Vitesse de deplacement en ligne */
++  double vitesse_rot;            /* Vitesse de deplacement en rotation */
++  /* Ajustement de la vitesse de deplacement et de rotation */
++  vitesse_dep = temps_frame * VITESSE_DEPLACEMENT;
++  vitesse_rot = temps_frame * VITESSE_ROTATION;
+   sdl_touches_lire();
+-  
+- 
++  /* Touche up : on se deplace vers l'avant si aucun mur devant soi */
+   if (sdl_touches_appuyee(SDLK_UP )) {
+-
+-   
++    if(carte[(int)(Pos.x + Dir.x * vitesse_dep)+1][(int)(Pos.y)] == 0)
++      Pos.x += Dir.x * vitesse_dep;
++    if(carte[(int)(Pos.x)][(int)(Pos.y + Dir.y * vitesse_dep)] == 0)
++      Pos.y += Dir.y * vitesse_dep;
+   }
+-
+- 
++  /* Touche down : on se deplace vers l'arriere si aucun mur devant soi */
+   if (sdl_touches_appuyee(SDLK_DOWN)) {
+-  
++    if(carte[(int)(Pos.x - Dir.x * vitesse_dep)][(int)(Pos.y)] == 0)
++      Pos.x -= Dir.x * vitesse_dep;
++    if(carte[(int)(Pos.x)][(int)(Pos.y - Dir.y * vitesse_dep)] == 0)
++      Pos.y -= Dir.y * vitesse_dep;
+   }
+-  
+-  
++  /* Touche down : on se deplace vers l'arriere si aucun mur devant soi */
+   if (sdl_touches_appuyee(SDLK_s)) {
+-   
++    if(carte[(int)(Pos.x - Dir.x * vitesse_dep)][(int)(Pos.y)] == 0)
++      Pos.x -= Dir.x * vitesse_dep;
++    if(carte[(int)(Pos.x)][(int)(Pos.y - Dir.y * vitesse_dep)] == 0)
++      Pos.y -= Dir.y * vitesse_dep;
+   }
+- 
++  /* Touche droite : on se deplace vers la droite si aucun mur devant soi */
+   if (sdl_touches_appuyee(SDLK_RIGHT)) {
+-   
++    /* La direction ET le plan de la camera doivent effectuer la rotation */
++    old_dirX = Dir.x;
++    Dir.x = Dir.x * cos(-vitesse_rot) - Dir.y * sin(-vitesse_rot);
++    Dir.y = old_dirX * sin(-vitesse_rot) + Dir.y * cos(-vitesse_rot);
++    old_planX = Plan.x;
++    Plan.x = Plan.x * cos(-vitesse_rot) - Plan.y * sin(-vitesse_rot);
++    Plan.y = old_planX * sin(-vitesse_rot) + Plan.y * cos(-vitesse_rot);
+   }
+-  
+-  
++  /* Touche gauche : on se deplace vers la gauche si aucun mur devant soi */
+   if (sdl_touches_appuyee(SDLK_LEFT)) {
+-  
++    /* La direction ET le plan de la camera doivent effectuer la rotation */
++    old_dirX = Dir.x;
++    Dir.x = Dir.x * cos(vitesse_rot) - Dir.y * sin(vitesse_rot);
++    Dir.y = old_dirX * sin(vitesse_rot) + Dir.y * cos(vitesse_rot);
++    old_planX = Plan.x;
++    Plan.x = Plan.x * cos(vitesse_rot) - Plan.y * sin(vitesse_rot);
++    Plan.y = old_planX * sin(vitesse_rot) + Plan.y * cos(vitesse_rot);
+   }
+-  
+- 
++  /* Touche 'Esc' ou 'q', on arrete l'application */
+   if (sdl_touches_appuyee(SDLK_ESCAPE) || sdl_touches_appuyee(SDLK_q)) {
+     sdl_quitter();
+     exit(0);
+diff --git a/moteur.h b/moteur.h
+index 79845e8..2aba379 100644
+--- a/moteur.h
++++ b/moteur.h
+@@ -1,81 +1,23 @@
+ #define LARGEUR_CARTE 24
+ #define HAUTEUR_CARTE 24
+ 
+-typedef struct PosJoueur PosJoueur;
+ 
+-struct PosJoueur{
+-double posX; // Abscisses
+-double posY; // Ordonnées
+-};
+-
+-typedef struct DirectionJoueur DirectionJoueur;
+-
+-struct DirectionJoueur{
+-double dirX; 
+-double diry; 
+-};
+-
+-
+-typedef struct PlanCamera PlanCamera;
+-
+-struct PlanCamera{
+-double planX;
+-double planY;
+-};
++typedef struct CoordonneesReel CoordonneesReel;
+ 
+-typedef struct PosCarteJoueur PosCarteJoueur;
++struct CoordonneesReel
+ 
+-struct PosCarteJoueur{
+-int carteX;          /* Position du carre dans lequel on est en x */
+-int carteY; 
++{
++    double x; // Abscisses
++    double y; // Ordonnées
+ };
+ 
++typedef struct Coordonnees Coordonnees;
++struct Coordonnees
+ 
+-typedef struct Camera Camera;
+-
+-struct Camera{
+-double posX; // Abscisses
+-double posY; // Ordonnées
+-double dirX; 
+-double diry; 
+-double planX;
+-double planY;
+-int carteX;          /* Position du carre dans lequel on est en x */
+-int carteY; 
+-int pasX;             /* direction vers laquelle on va en x (-1 ou 1) */
+-int pasY;
+-int touche;
+-};
+-
+-/* Structure de couleur RGB */
+-typedef struct Couleur Couleur;
+-struct Couleur {
+-  int rouge;
+-  int vert;
+-  int bleu;
+-};
+-
+-
+-
+-struct Ray{
+-  int     
+-      type_cote, 
+-      hauteur_ligne,  
+-      pixel_haut,      
+-      pixel_bas;        
+-  double cameraX,      
+-         rayPosX,     
+-	 rayPosY,      
+-	 rayDirX,    
+-	 rayDirY,      
+-         bordDistX,    
+-         bordDistY,    
+-         deltaDistX,    
+-	 deltaDistY,   
+-         perpWallDist; 
+-     
++{
++    int x; // Abscisses
++    int y; // Ordonnées
+ };
+ 
+-
+-void moteur_dessiner(int x, int largeur, int hauteur);
+-void moteur_gestion_des_actions(double temps_frame);
++void moteur_dessiner_colonne(int x, int largeur, int hauteur);
++void moteur_gestion_actions(double temps_frame);
+diff --git a/sdl.c b/sdl.c
+index 43b65de..5857595 100644
+--- a/sdl.c
++++ b/sdl.c
+@@ -1,179 +1,112 @@
+-/* */
+- 
+ #include <SDL/SDL.h>
+ #include <stdlib.h>
+ #include <SDL/SDL_image.h>
+ #include "moteur.h"
+-
+-SDL_Surface* ecran ,* texture, * map,* lecture_texture = NULL;
+-
++#define texWidth 256
++#define texHeight 256
++SDL_Surface* ecran ,* texture[10]={NULL}, * map,* loadedSurface = NULL;
+ SDL_Surface* surface = NULL;
+-
+ Uint8* touches_lues;
+-
++/* Fonction d'initialisation de la SDL et de la fenetre d'affichage */
+ void sdl_ecran_init(int largeur, int hauteur) {
+-  if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+-    printf("Probleme initialisation SDL: %s\n",SDL_GetError());
+-    SDL_Quit();
+-    exit(1);
+-  }
+-
+-
+-  ecran = SDL_SetVideoMode(largeur,hauteur,32,SDL_HWSURFACE | SDL_HWPALETTE);
+-  if(ecran == NULL) {
+-    printf("Probleme configuration mode video: %s\n",SDL_GetError());
+-    SDL_Quit();
+-    exit(1);
+-  }
+-
+-SDL_WM_SetCaption("raycasting", NULL);
+-
+-lecture_texture = IMG_Load("textures/murs.bmp");
+-/* lecture surface*/
+- 
+-if(lecture_texture == NULL)
+-{
+-    printf("Erreur de chargement de la texture : %s",SDL_GetError());
+-    exit(1);
++	if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
++		printf("Probleme initialisation SDL: %s\n",SDL_GetError());
++		SDL_Quit();
++		exit(1);
++	}
++/* Mode video : fenetre couleurs 32 bits de taille hauteur * largeur */
++	ecran = SDL_SetVideoMode(largeur,hauteur,32,SDL_HWSURFACE | SDL_HWPALETTE);
++	if(ecran == NULL) {
++		printf("Probleme configuration mode video: %s\n",SDL_GetError());
++		SDL_Quit();
++		exit(1);
++	}
++	SDL_WM_SetCaption("Chargement d'images en SDL", NULL);
++	loadedSurface = IMG_Load("textures/mur1d.bmp");
++	if(loadedSurface == NULL)
++	{
++		printf("Erreur de chargement de l'image : %s",SDL_GetError());
++		exit(1);
++	}
++	else {  texture[1] = SDL_ConvertSurface( loadedSurface, ecran->format, SDL_HWSURFACE | SDL_HWPALETTE );
++		SDL_FreeSurface(loadedSurface);
++		if( texture[1] == NULL ) {
++			printf( "Unable to optimize image ! SDL Error: %s\n",  SDL_GetError() );
++			exit(1);
++		}
++	}
+ }
+-  else {  texture = SDL_ConvertSurface( lecture_texture, ecran->format, SDL_HWSURFACE | SDL_HWPALETTE ); 
+-    SDL_FreeSurface(lecture_texture);
+-
+-  if( texture == NULL ) { 
+-  printf( "Erreur optimisation  de la texture  %s\n",  SDL_GetError() ); 
+-   exit(1);
+-} 
+- 
+-}
+-
+-}
+-
+ /* Dessin d'une ligne verticale depuis (x,y1) jusqu'a (x,y2), en couleur */
+-
+ void sdl_ligne_verticale(int x, int y1, int y2, int r, int v, int b) {
+-
++	int y;
++	Uint32 colorSDL = SDL_MapRGB(ecran->format,r,v,b);
++	Uint32* bufp;
++	bufp = (Uint32*)ecran->pixels + y1 * ecran->pitch / 4 + x;
++	for(y = y1; y <= y2; y++) {
++		*bufp = colorSDL;
++		bufp += ecran->pitch / 4;
++	}
++}
++Uint32 get_pixel32( SDL_Surface *surface, int x, int y ) {
++	Uint32 *pixels = (Uint32 *)surface->pixels;
++	return pixels[ ( y * surface->w ) + x ];
+ }
+-
+-
+-Uint32 get_pixel32( SDL_Surface *surface, int x, int y ) { 
+-Uint32 *pixels = (Uint32 *)surface->pixels;
+-return pixels[ ( y * surface->w ) + x ];
+- }
+-
+ void put_pixel32( SDL_Surface *surface, int x, int y, Uint32 pixel ) {
+-Uint32 *pixels = (Uint32 *)surface->pixels;
+-pixels[ ( y * surface->w ) + x ] = pixel; }
+-
+-
+-
+-Uint32 obtenirPixel(SDL_Surface *surface, int x, int y){
+-int nbOctetsParPixel = surface->format->BytesPerPixel;
+-Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * nbOctetsParPixel;
+-
+-  switch(nbOctetsParPixel)
+-
+-    {
+-        case 1:
+-        return *p;
+-       case 2:
+- return *(Uint16 *)p;
+- case 3:
+-if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+-return p[0] << 16 | p[1] << 8 | p[2];
+- else
+-return p[0] | p[1] << 8 | p[2] << 16;
+-case 4:
+-return *(Uint32 *)p;
+-default:
+-return 0; 
+-}
+-}
+-
+-void definirPixel(SDL_Surface *surface, int x, int y, Uint32 pixel)
+-
+-{
+- int nbOctetsParPixel = surface->format->BytesPerPixel;
+- Uint8 *p = (Uint8 *)surface->pixels + y * surface->pitch + x * nbOctetsParPixel;
+-
+-
+-    switch(nbOctetsParPixel)
+-
+-    {
+- case 1:
+-*p = pixel;
+-break;
+- case 2:
+- *(Uint16 *)p = pixel;
+- break;
+-case 3:
+-if(SDL_BYTEORDER == SDL_BIG_ENDIAN)
+- {
+- p[0] = (pixel >> 16) & 0xff;
+-p[1] = (pixel >> 8) & 0xff;
+-p[2] = pixel & 0xff;
+-}
+-else
+-{
+-p[0] = pixel & 0xff;
+-p[1] = (pixel >> 8) & 0xff;
+-p[2] = (pixel >> 16) & 0xff;
+-}
+-break;
+-case 4:
+- *(Uint32 *)p = pixel;
+- break;
+-}
+-}
+-
+-
+-
+-void sdl_ligne_verticale_texture(int x, int texX,int type_cote,int y1, int y2){
+-SDL_LockSurface(texture);
+-SDL_LockSurface(ecran);
+-
+-SDL_UnlockSurface(texture);
+-SDL_UnlockSurface(ecran);
+-}
+-
+-void sdl_ecran_mise_a_jour() {
+-
+-  SDL_UpdateRect(ecran,0,0,0,0);
+-  SDL_FillRect(ecran,NULL,0);
+-
+-}
+-
++	Uint32 *pixels = (Uint32 *)surface->pixels;
++	pixels[ ( y * surface->w ) + x ] = pixel; }
++	void sdl_ligne_verticale_texture(int x, int texX,int type_cote,int y1, int y2,int Y3){
++		SDL_LockSurface(texture[1]);
++		SDL_LockSurface(ecran);
++		int y,w;
++		double rx,ry;
++		Uint8 r, v, b,a;
++		Uint32 pixel;
++		ry = Y3*1.0/texture[1]->h;
++		for(y = y1; y < y2; y++) {
++			w = ((y-y1))/ry;
++			pixel= get_pixel32(texture[1],texX,w);
++			if (!type_cote)
++			{
++				SDL_GetRGB(pixel, texture[1]->format, &r, &v, &b);
++				pixel=SDL_MapRGBA(ecran->format, r >>1, v>>1, b>>1, a);
++			}
++			put_pixel32(ecran,x,y,pixel);
++		}
++		SDL_UnlockSurface(texture[1]);
++		SDL_UnlockSurface(ecran);
++	}
++/* Fonction pour mettre a jour l'affichage */
++	void sdl_ecran_mise_a_jour() {
++		SDL_Rect positionFond;
++		positionFond.x = 0;
++		positionFond.y = 0;
++		SDL_UpdateRect(ecran,0,0,0,0);
++		SDL_FillRect(ecran,NULL,0);
++	}
+ /* Lit les touches appuyees et place l'information dans touches_lues */
+-
+-void sdl_touches_lire() {
+-  touches_lues = SDL_GetKeyState(NULL);
+-}
+-
++	void sdl_touches_lire() {
++		touches_lues = SDL_GetKeyState(NULL);
++	}
+ /* Verifie si la touche en paramettre a ete appuyee, renvoie 1 (oui), 0 (non) */
+-int sdl_touches_appuyee(int touche) {
+-  return (touches_lues[touche] != 0);
+-}
+-
++	int sdl_touches_appuyee(int touche) {
++		return (touches_lues[touche] != 0);
++	}
+ /* Retourne le nombre de millisecondes depuis le debut du programme */
+-unsigned long sdl_date() {
+-  return SDL_GetTicks();
+-}
+-
++	unsigned long sdl_date() {
++		return SDL_GetTicks();
++	}
+ /* Retourne 1 si la fenetre a ete fermee */
+-int sdl_fin() {
+-  int done = 0;
+-  SDL_Event event;
+-  
+-  if(!SDL_PollEvent(&event))
+-    return 0;
+-  if(event.type == SDL_QUIT)
+-    done = 1;
+-  return done;
+-}
+-
++	int sdl_fin() {
++		int done = 0;
++		SDL_Event event;
++		if(!SDL_PollEvent(&event))
++			return 0;
++		if(event.type == SDL_QUIT)
++			done = 1;
++		return done;
++	}
+ /* Liberer les ressources de la SDL */
+-void sdl_quitter() {
+-
+-  SDL_FreeSurface(texture);
+-  SDL_Quit();
+-}
+-
++	void sdl_quitter() {
++		SDL_FreeSurface(texture[1]);
++		SDL_Quit();
++	}
+diff --git a/sdl.h b/sdl.h
+index 5f24a6e..ab348ce 100644
+--- a/sdl.h
++++ b/sdl.h
+@@ -1,6 +1,6 @@
+ void sdl_ecran_init(int largeur, int hauteur);
+ void sdl_ligne_verticale(int x, int y1, int y2, int r, int v, int b);
+-void sdl_ligne_verticale_texture(int x, int texX,int type_cote,int y1, int y2);
++void sdl_ligne_verticale_texture(int x, int texX,int type_cote,int y1, int y2,int Y3);
+ void sdl_ecran_mise_a_jour();
+ void sdl_touches_lire();
+ void sdl_quitter();
+diff --git a/test.txt b/test.txt
+deleted file mode 100644
+index 9daeafb..0000000
+--- a/test.txt
++++ /dev/null
+@@ -1 +0,0 @@
+-test
+diff --git a/textures/1_1286445082_herbe.png b/textures/1_1286445082_herbe.png
+new file mode 100644
+index 0000000..7ee27d9
+Binary files /dev/null and b/textures/1_1286445082_herbe.png differ
+diff --git a/textures/b1.bmp b/textures/b1.bmp
+new file mode 100644
+index 0000000..f21836c
+Binary files /dev/null and b/textures/b1.bmp differ
+diff --git a/textures/mur1.bmp b/textures/mur1.bmp
+new file mode 100644
+index 0000000..aea2e8f
+Binary files /dev/null and b/textures/mur1.bmp differ
+diff --git a/textures/mur1d.bmp b/textures/mur1d.bmp
+new file mode 100644
+index 0000000..cde33e2
+Binary files /dev/null and b/textures/mur1d.bmp differ
+diff --git a/textures/mur1g.bmp b/textures/mur1g.bmp
+new file mode 100644
+index 0000000..1ef2215
+Binary files /dev/null and b/textures/mur1g.bmp differ
+diff --git a/textures/mur_brikes1a.bmp b/textures/mur_brikes1a.bmp
+new file mode 100644
+index 0000000..d00aa7c
+Binary files /dev/null and b/textures/mur_brikes1a.bmp differ
+diff --git a/textures/murs1.bmp b/textures/murs1.bmp
+new file mode 100644
+index 0000000..cd6d0a5
+Binary files /dev/null and b/textures/murs1.bmp differ
