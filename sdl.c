@@ -2,13 +2,50 @@
 #include <stdlib.h>
 #include <SDL/SDL_image.h>
 #include "moteur.h"
-#define texWidth 256
-#define texHeight 256
+#include "constantes.h"
 
-
-SDL_Surface* ecran ,* texture[10]={NULL}, * map,* loadedSurface = NULL;
-SDL_Surface* surface = NULL;
+SDL_Surface* ecran ,* mur[4]={NULL},* sol[2]={NULL},* ciel={NULL},* fantome={NULL},* fruit={NULL};
 Uint8* touches_lues;
+SDL_Surface *surface = NULL;
+SDL_Surface *temp = NULL;
+SDL_Surface *rectangle = NULL;
+SDL_Rect position ,copy;
+
+
+
+
+
+SDL_Surface* Charger(const char* fic)
+{
+    SDL_Surface *res;
+    SDL_Surface* tmp = IMG_Load(fic);
+    if (tmp==NULL)
+    {
+        printf("Erreur chargement %s\n",fic);
+        exit(-1);
+    }
+    res = SDL_DisplayFormat(tmp);
+    SDL_FreeSurface(tmp);
+    return res;
+}
+void charger_mur(){
+    mur[0] = Charger("textures/mur.bmp");
+    mur[1] = Charger("textures/mur1.bmp");
+    mur[2] = Charger("textures/mur2.bmp");
+    mur[3] = Charger("textures/porte.bmp");
+// mur[0] = SDL_ConvertSurface( IMG_Load("textures/mur.bmp"), ecran->format, SDL_HWSURFACE | SDL_HWPALETTE );
+}
+void charger_sol_et_ciel(){
+    sol[0] = Charger("textures/herbe.png");
+    sol[1]= Charger("textures/sol.bmp");
+    ciel = Charger("textures/plafond.jpeg");
+}
+void charger_fantome(){
+    fantome = Charger("textures/fantome.png");
+}
+void charger_fruit(){
+    fruit = Charger("textures/fruit.jpg");
+}
 /* Fonction d'initialisation de la SDL et de la fenetre d'affichage */
 void sdl_ecran_init(int largeur, int hauteur) {
     if(SDL_Init(SDL_INIT_EVERYTHING) < 0) {
@@ -24,19 +61,10 @@ void sdl_ecran_init(int largeur, int hauteur) {
         exit(1);
     }
     SDL_WM_SetCaption("RayCasting", NULL);
-    loadedSurface = IMG_Load("textures/mur.bmp");
-    if(loadedSurface == NULL)
-    {
-        printf("Erreur de chargement de l'image : %s",SDL_GetError());
-        exit(1);
-    }
-    else {  texture[1] = SDL_ConvertSurface( loadedSurface, ecran->format, SDL_HWSURFACE | SDL_HWPALETTE );
-        SDL_FreeSurface(loadedSurface);
-        if( texture[1] == NULL ) {
-            printf( "Unable to optimize image ! SDL Error: %s\n",  SDL_GetError() );
-            exit(1);
-        }
-    }
+    charger_mur();
+    charger_sol_et_ciel();
+    charger_fantome();
+    charger_fruit();
 }
 /* Dessin d'une ligne verticale depuis (x,y1) jusqu'a (x,y2), en couleur */
 void sdl_ligne_verticale(int x, int y1, int y2, int r, int v, int b) {
@@ -55,38 +83,117 @@ Uint32 get_pixel32( SDL_Surface *surface, int x, int y ) {
 }
 void put_pixel32( SDL_Surface *surface, int x, int y, Uint32 pixel ) {
     Uint32 *pixels = (Uint32 *)surface->pixels;
-    pixels[ ( y * surface->w ) + x ] = pixel; 
+    pixels[ ( y * surface->w ) + x ] = pixel;
 }
 
-void sdl_ligne_verticale_texture(int x, int texX,int type_cote,int y1, int y2,int Y3){
-SDL_LockSurface(texture[1]);
-        SDL_LockSurface(ecran);
-        int y,w;
-        double rx,ry;
-        Uint8 r, v, b,a;
-        Uint32 pixel;
-        ry = Y3*1.0/texture[1]->h;
-        for(y = y1; y < y2; y++) {
-        int d = y * 256 - 480 * 128 + Y3 * 128;
-        w = ((d * texHeight) / Y3) / 256;
-            pixel= get_pixel32(texture[1],texX,w);
-            if (!type_cote)
+void zoom(SDL_Surface* src,SDL_Surface* dest,int decalage,int nombre)
+{SDL_LockSurface(src);
+    SDL_LockSurface(dest);
+
+    int i,j;
+    double rx,ry;
+    Uint8 r, v, b,a;
+    Uint32 pixel;
+    rx = dest->w*1.0/src->w;
+    ry = dest->h*1.0/src->h;
+    rx =rx*nombre;
+    for(i=0;i<dest->w;i++)
+        for(j=0;j<dest->h;j++)
+           
             {
-                SDL_GetRGB(pixel, texture[1]->format, &r, &v, &b);
-                pixel=SDL_MapRGBA(ecran->format, r >>1, v>>1, b>>1, a);
+                 pixel= get_pixel32(src,(int)i/rx + decalage%12 * (int)src->w/12 ,(int)((j/ry)));
+                 put_pixel32(dest,i,j,pixel & 0x00FF0000);
+                
             }
-            put_pixel32(ecran,x,y,pixel  & 0x00FFFFFF);
+            SDL_UnlockSurface(src);
+    SDL_UnlockSurface(dest);
+}
+
+void Blit(SDL_Surface* source,SDL_Surface* dest,int x,int y)
+{
+    SDL_Rect R;
+    R.x = x;
+    R.y = y;
+    SDL_BlitSurface(source,NULL,dest,&R);
+}
+
+
+void sdl_ligne_verticale_texture(int x, int y,int texX,int texY,int type_cote , int i){
+    SDL_LockSurface(mur[i]);
+    SDL_LockSurface(ecran);
+    Uint8 r, v, b,a;
+    Uint32 pixel;
+    pixel= get_pixel32(mur[i],texX,texY);
+        if (!type_cote)
+        {
+            SDL_GetRGB(pixel, mur[i]->format, &r, &v, &b);
+            pixel=SDL_MapRGBA(ecran->format, r >>1, v>>1, b>>1, a);
         }
-        SDL_UnlockSurface(texture[1]);
-        SDL_UnlockSurface(ecran);
+        put_pixel32(ecran,x,y,pixel & 0x00FFFFFF);
+
+    SDL_UnlockSurface(mur[i]);
+    SDL_UnlockSurface(ecran);
+}
+void sdl_ligne_verticale_texture_sol(int x, int y ,int floorTexX,int floorTexY ){
+    SDL_LockSurface(sol[0]);
+    SDL_LockSurface(ciel);
+    SDL_LockSurface(ecran);
+    Uint8 r, v, b,a;
+    Uint32 pixel;
+    pixel= get_pixel32(sol[0],floorTexX,floorTexY);
+    put_pixel32(ecran,x,y,pixel & 0x000FF000);
+    pixel= get_pixel32(ciel,floorTexX,floorTexY);
+    put_pixel32(ecran,x,480-y,pixel & 0x0000FFFF);
+    SDL_UnlockSurface(sol[0]);
+    SDL_UnlockSurface(ciel);
+    SDL_UnlockSurface(ecran);
+}
+void  sdl_ligne_verticale_texture_sprite(int x, int y ,int texX,int texY ){
+//printf("x %d y %d \n", texX, texY);
+    SDL_LockSurface(fantome);
+    SDL_LockSurface(ecran);
+    Uint8 r, v, b,a;
+    Uint32 pixel;
+    pixel= get_pixel32(fantome,texX,texY);
+    put_pixel32(ecran,x,y,pixel);
+    SDL_UnlockSurface(fantome);
+    SDL_UnlockSurface(ecran);
+}
+void sdl_ligne_sprite_texture(int x, int y ,int floorTexX,int floorTexY ){
+    position.x =x;
+    position.y =y;
+    position.h = floorTexX;
+    position.w = floorTexY;
 }
 /* Fonction pour mettre a jour l'affichage */
-void sdl_ecran_mise_a_jour() {
+void sdl_ecran_mise_a_jour(int i) {
     SDL_Rect positionFond;
     positionFond.x = 0;
     positionFond.y = 0;
+    copy=position;
+
+    SDL_SetColorKey( fantome, SDL_SRCCOLORKEY, SDL_MapRGB( fantome->format, 0, 0, 0 ) );
+    SDL_SetAlpha(fantome, SDL_SRCALPHA, 128);
+
+    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, position.h, position.w, 32,
+                                   0, 0, 0,0);
+    //surface= SDL_DisplayFormat(fantome);
+    if (position.h<512)
+    {
+       zoom(fantome,surface,i,12);
+       SDL_SetColorKey( surface, SDL_SRCCOLORKEY, SDL_MapRGB( fantome->format, 0, 0, 0 ) );
+    SDL_SetAlpha(surface, SDL_SRCALPHA, 128);
+    SDL_BlitSurface(surface,NULL,ecran,&copy);
+    SDL_FreeSurface(surface);
+    }
+
+    //SDL_BlitSurface(fantome,&positionsprite,ecran,&copy);
+
+    SDL_Flip(ecran);
+
     SDL_UpdateRect(ecran,0,0,0,0);
     SDL_FillRect(ecran,NULL,0);
+
 }
 /* Lit les touches appuyees et place l'information dans touches_lues */
 void sdl_touches_lire() {
@@ -111,7 +218,10 @@ int sdl_fin() {
     return done;
 }
 /* Liberer les ressources de la SDL */
-void sdl_quitter() {
-    SDL_FreeSurface(texture[1]);
+void sdl_quitter() {int i;
+    for (i = 0; i < 3; ++i)
+    {
+        SDL_FreeSurface(mur[i]);
+    }
     SDL_Quit();
 }

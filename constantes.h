@@ -1,0 +1,47 @@
+
+
+#ifndef DEF_CONSTANTES
+#define DEF_CONSTANTES
+
+#define VITESSE_DEPLACEMENT 3
+#define VITESSE_ROTATION 3
+#define texWidth 256
+#define texHeight 256
+#define NB_BLOCS_LARGEUR    24
+#define NB_BLOCS_HAUTEUR    24
+
+int carte[NB_BLOCS_LARGEUR][NB_BLOCS_HAUTEUR] ;
+
+typedef struct CoordonneesReel CoordonneesReel;
+
+struct CoordonneesReel
+
+{
+    double x; // Abscisses
+    double y; // Ordonnées
+    int texture;
+};
+
+typedef struct Coordonnees Coordonnees;
+struct Coordonnees
+
+{
+    int x; // Abscisses
+    int y; // Ordonnées
+};
+
+typedef struct Sprite
+{
+  double x;
+  double y;
+  int texture;
+}Sprite;
+
+struct couleur {
+  int rouge;
+  int vert;
+  int bleu;
+};
+
+
+#endif
