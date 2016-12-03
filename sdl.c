@@ -6,10 +6,10 @@
 
 SDL_Surface* ecran ,* mur[4]={NULL},* sol[2]={NULL},* ciel={NULL},* fantome={NULL},* fruit={NULL};
 Uint8* touches_lues;
-SDL_Surface *surface = NULL;
+SDL_Surface *surface[10] = {NULL};
 SDL_Surface *temp = NULL;
 SDL_Surface *rectangle = NULL;
-SDL_Rect position ,copy;
+SDL_Rect position[10] ,copy;
 
 
 
@@ -86,7 +86,7 @@ void put_pixel32( SDL_Surface *surface, int x, int y, Uint32 pixel ) {
     pixels[ ( y * surface->w ) + x ] = pixel;
 }
 
-void zoom(SDL_Surface* src,SDL_Surface* dest,int decalage,int nombre)
+void zoom(SDL_Surface* src,SDL_Surface* dest,int decalage,int nombre,int x)
 {SDL_LockSurface(src);
     SDL_LockSurface(dest);
 
@@ -102,8 +102,18 @@ void zoom(SDL_Surface* src,SDL_Surface* dest,int decalage,int nombre)
            
             {
                  pixel= get_pixel32(src,(int)i/rx + decalage%12 * (int)src->w/12 ,(int)((j/ry)));
-                 put_pixel32(dest,i,j,pixel & 0x00FF0000);
-                
+                 if (x==0)
+                 {
+                      put_pixel32(dest,i,j,pixel & 0x00FF0000);
+                 }
+                   else if(x==1)
+                 {
+                 put_pixel32(dest,i,j,pixel & 0x0000FF00);
+                }
+                  else
+                 {
+                 put_pixel32(dest,i,j,pixel& 0x000000FF);
+                }
             }
             SDL_UnlockSurface(src);
     SDL_UnlockSurface(dest);
@@ -148,48 +158,42 @@ void sdl_ligne_verticale_texture_sol(int x, int y ,int floorTexX,int floorTexY )
     SDL_UnlockSurface(ciel);
     SDL_UnlockSurface(ecran);
 }
-void  sdl_ligne_verticale_texture_sprite(int x, int y ,int texX,int texY ){
-//printf("x %d y %d \n", texX, texY);
-    SDL_LockSurface(fantome);
-    SDL_LockSurface(ecran);
-    Uint8 r, v, b,a;
-    Uint32 pixel;
-    pixel= get_pixel32(fantome,texX,texY);
-    put_pixel32(ecran,x,y,pixel);
-    SDL_UnlockSurface(fantome);
-    SDL_UnlockSurface(ecran);
-}
-void sdl_ligne_sprite_texture(int x, int y ,int floorTexX,int floorTexY ){
-    position.x =x;
-    position.y =y;
-    position.h = floorTexX;
-    position.w = floorTexY;
+
+void sdl_ligne_sprite_texture(int x, int y ,int floorTexX,int floorTexY ,int i){
+   printf("pos %d\n",i );
+    position[i].x =x;
+    position[i].y =y;
+    position[i].h = floorTexX;
+    position[i].w = floorTexY;
 }
 /* Fonction pour mettre a jour l'affichage */
-void sdl_ecran_mise_a_jour(int i) {
+void sdl_ecran_mise_a_jour(int nbframe,int i) {
     SDL_Rect positionFond;
     positionFond.x = 0;
     positionFond.y = 0;
-    copy=position;
-
+    copy=position[i];
     SDL_SetColorKey( fantome, SDL_SRCCOLORKEY, SDL_MapRGB( fantome->format, 0, 0, 0 ) );
     SDL_SetAlpha(fantome, SDL_SRCALPHA, 128);
 
-    surface = SDL_CreateRGBSurface(SDL_SWSURFACE, position.h, position.w, 32,
-                                   0, 0, 0,0);
     //surface= SDL_DisplayFormat(fantome);
-    if (position.h<512)
-    {
-       zoom(fantome,surface,i,12);
-       SDL_SetColorKey( surface, SDL_SRCCOLORKEY, SDL_MapRGB( fantome->format, 0, 0, 0 ) );
-    SDL_SetAlpha(surface, SDL_SRCALPHA, 128);
-    SDL_BlitSurface(surface,NULL,ecran,&copy);
-    SDL_FreeSurface(surface);
+    for (int i = 0; i < 3; ++i)
+    { 
+       if (position[i].h<480)
+    { 
+    copy=position[i];
+    surface[i] = SDL_CreateRGBSurface(SDL_SWSURFACE, position[i].h, position[i].w, 32,0,0,0,0);
+    zoom(fantome,surface[i],position[i].w,12,i);
+    SDL_SetColorKey( surface[i], SDL_SRCCOLORKEY, SDL_MapRGB( fantome->format, 0, 0, 0 ) );
+    SDL_SetAlpha(surface[i], SDL_SRCALPHA, 128);
+    SDL_BlitSurface(surface[i],NULL,ecran,&copy);
+     printf("blit %d\n",i);
+    SDL_FreeSurface(surface[i]);
+    } /* code */
+    
     }
-
+   
     //SDL_BlitSurface(fantome,&positionsprite,ecran,&copy);
-
-    SDL_Flip(ecran);
+// SDL_Flip(ecran);
 
     SDL_UpdateRect(ecran,0,0,0,0);
     SDL_FillRect(ecran,NULL,0);
