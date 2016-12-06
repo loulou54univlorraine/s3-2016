@@ -20,9 +20,12 @@ const struct couleur gris    = {128,128,128};
 const struct couleur marron  = {128,  0,  0};
 const struct couleur violet  = {128,  0,128};
 
-Sprite sprite[10] ={{11.5, 11.5,0},
-{11.5, 11.5,0},{11,11,1},{8.5, 11.5,2},{11.5, 3.5,3},{15.5, 11.5,4},{11.5,2.5,5},
-{8.5, 2.5,6},{3.5, 9.5,7},{4.5, 5.5,8}};
+Sprite fantomeSprite[3] ={{11.5, 11.5,0},
+{11.5, 11.5,0},{11,11,0}};
+
+int numSprites = 3;
+Sprite sprite[3] ={{10.5,10.5,0},
+{11.5, 9.5,0},{12,11,0}};
 
 CoordonneesReel Pos ={22,11.5} ,Dir={-1,0},Plan ={0,0.60};
 CoordonneesReel RayPos={0,0},RayDir={0,0},BordDist ={0,0},DeltaDist ={0,0};
@@ -42,8 +45,10 @@ void sauvegarder(){
 int a = sauvegarderNiveau(carte);}
 
 void chargement(){
-if (!chargerNiveau(carte))
+if (!chargerNiveau(1,carte))
         exit(EXIT_FAILURE);}
+
+
 /*---------------  raycasting     ---------------*/
 double moteur_dessiner_colonne(int x, int largeur, int hauteur) {
 int
@@ -153,6 +158,8 @@ for(start = pixel_haut; start < pixel_bas; start++)
         sdl_ligne_verticale_texture(x,start,texX,texY,type_cote,carte[Carte.x][Carte.y]-1);
   
       }
+
+ZBuffer[x] = perpWallDist;
 //pour les plafonds et les sols
 //FLOOR CASTING
 double floorXWall, floorYWall; //x, y position of the floor texel at the bottom of the wall
@@ -192,32 +199,35 @@ floorTexX = (int)(currentFloorX * texWidth) % texWidth;
 floorTexY = (int)(currentFloorY * texHeight) % texHeight;
 sdl_ligne_verticale_texture_sol(x, start ,floorTexX,floorTexY );
 }
-return perpWallDist;
+
 }
-void moteur_dessiner_Sprite(int i){
+double moteur_dessiner_Fantome(int i){
   int largeur = 600;
   int hauteur = 480;
- printf("action %d\n",i);
-  double spriteDistance = ((Pos.x - sprite[i].x) * (Pos.x - sprite[i].x) + (Pos.y - sprite[i].y) * (Pos.y - sprite[i].y));
+// double X=((double)rand()/(0,01*(double)RAND_MAX));
+ //printf("%f\n", X);
+  double fantomeDistance = ((Pos.x - fantomeSprite[i].x) * (Pos.x - fantomeSprite[i].x) + (Pos.y - fantomeSprite[i].y) * (Pos.y - fantomeSprite[i].y));
 //translate sprite[i][i] position to relative to camera
-  double spriteX = sprite[i].x - Pos.x;
-  double spriteY = sprite[i].y - Pos.y;
-  printf("aaaaaa%d\n",i);
+  double spriteX = fantomeSprite[i].x - Pos.x;
+  double spriteY = fantomeSprite[i].y - Pos.y;
+  
 if (i==0)
-{ printf("a %d\n",i ); 
-sprite[0].x=  sprite[0].x - 0.01*spriteX;
-sprite[0].y=  sprite[0].y - 0.01*spriteY;
+{ 
+fantomeSprite[0].x=  fantomeSprite[0].x - 0.01*spriteX;
+fantomeSprite[0].y=  fantomeSprite[0].y - 0.02*spriteY;
 }
 if (i==1)
-{printf("b %d\n",i ); 
-sprite[1].x=  sprite[1].x - 0.02*spriteX;
-sprite[1].y=  sprite[1].y - 0.02*spriteY;
+{
+fantomeSprite[1].x=  fantomeSprite[1].x - 0,02*spriteX;
+fantomeSprite[1].y=  fantomeSprite[1].y - 0.02*spriteY;
 }
 if (i==2)
-{printf("b %d\n",i ); 
-sprite[2].x=  sprite[2].x - 0.03*spriteX;
-sprite[2].y=  sprite[2].y - 0.02*spriteY;
+{
+fantomeSprite[2].x=  fantomeSprite[2].x - 0.03*spriteX;
+fantomeSprite[2].y=  fantomeSprite[2].y - 0.02*spriteY;
 }
+
+
 double invDet = 1.0 / (Plan.x * Dir.y - Dir.x * Plan.y); //required for correct matrix multiplication
 double transformX = invDet * (Dir.y * spriteX - Dir.x * spriteY);
 double transformY = invDet * (-Plan.y * spriteX + Plan.x * spriteY); //this is actually the depth inside the screen, that what Z is in 3D
@@ -234,15 +244,78 @@ int spriteWidth = abs( (int) (hauteur / (transformY)));
 int drawStartX = -spriteWidth / 2 + spriteScreenX;
 //if(drawStartX < 0) drawStartX = 0;
 int drawEndX = spriteWidth / 2 + spriteScreenX;
-
 if(transformY > 0 )
-  printf("sprite_texture %d\n",i );
- sdl_ligne_sprite_texture(drawStartX, drawStartY,spriteWidth,spriteHeight,i);
-
+sdl_ligne_fantome_texture(drawStartX, drawStartY,spriteWidth,spriteHeight,i);
+return fantomeDistance;
 }
 
+ void moteur_dessiner_Fruit(){
+  int largeur = 600;
+  int hauteur = 480;
+
+ double distanceSprite[numSprites];
+ int ordreSprites[numSprites];
+
+ for(int i = 0; i < numSprites; i++)
+    {
+      ordreSprites[i] = i;
+      distanceSprite[i] = ((Pos.x - sprite[i].x) * (Pos.x - sprite[i].x) + (Pos.y - sprite[i].y) * (Pos.y - sprite[i].y));
+    }
+
+for(int i=0; i<numSprites; i++){
+   for(int j=i+1; j<numSprites; j++) {
+      if(distanceSprite[i]<distanceSprite[j]) {
+         int tmp = distanceSprite[i];
+         int tmp2 =  ordreSprites[i];
+         distanceSprite[i] = distanceSprite[j];
+        ordreSprites[i]= ordreSprites[j];
+         distanceSprite[j] = tmp;  
+          ordreSprites[j]  =tmp2 ;
+      }
+   }
+   } 
+
+     for(int i = 0; i < numSprites; i++)
+    {
+      //translate sprite position to relative to camera
+      double spriteX = sprite[ordreSprites[i]].x - Pos.x;
+      double spriteY = sprite[ordreSprites[i]].y - Pos.y;
 
 
+      double invDet = 1.0 / (Plan.x * Dir.y - Dir.x * Plan.y); //required for correct matrix multiplication
+
+      double transformX = invDet * (Dir.y * spriteX - Dir.x * spriteY);
+      double transformY = invDet * (-Plan.y * spriteX + Plan.x * spriteY); 
+     //this is actually the depth inside the screen, that what Z is in 3D
+
+     int spriteScreenX = (int)((largeur / 2) * (1 + transformX / transformY));
+//calculate height of the sprite[i][i] on screen
+int spriteHeight = abs((int)(hauteur / (transformY))); //using "transformY" instead of the real distance prevents fisheye
+//calculate lowest and highest pixel to fill in current stripe
+int drawStartY = -spriteHeight / 2 + hauteur / 2;
+if(drawStartY < 0) drawStartY = 0;
+int drawEndY = spriteHeight / 2 + hauteur / 2;
+if(drawEndY >= hauteur) drawEndY = hauteur - 1;
+//calculate width of the sprite[i][i]
+int spriteWidth = abs( (int) (hauteur / (transformY)));
+int drawStartX = -spriteWidth / 2 + spriteScreenX;
+if(drawStartX < 0) drawStartX = 0;
+int drawEndX = spriteWidth / 2 + spriteScreenX;
+      for(int stripe = drawStartX; stripe < drawEndX; stripe++)
+      {
+        int texX = (int)(256 * (stripe - (-spriteWidth / 2 + spriteScreenX)) * texWidth / spriteWidth) / 256;
+ 
+        if(transformY > 0 && stripe > 0 && stripe < largeur  &&transformY < ZBuffer[stripe])
+        for(int y = drawStartY; y < drawEndY; y++) //for every pixel of the current stripe
+        {
+          int d = (y) * 256 - hauteur * 128 + spriteHeight * 128; //256 and 128 factors to avoid floats
+          int texY = ((d * texHeight) / spriteHeight) / 256;
+          sdl_ligne_verticale_texture_sprite(stripe,y,texX,texY,ordreSprites[i]);
+          
+        }
+      }
+}
+}
 void moteur_gestion_actions(double temps_frame) {
   double old_dirX, old_planX;
 double vitesse_dep;            /* Vitesse de deplacement en ligne */
@@ -253,10 +326,10 @@ double vitesse_rot;            /* Vitesse de deplacement en rotation */
   sdl_touches_lire();
 /* Touche up : on se deplace vers l'avant si aucun mur devant soi */
   if (sdl_touches_appuyee(SDLK_UP )) {
-    if(carte[(int)(Pos.x + Dir.x * vitesse_dep)][(int)(Pos.y)] == 0)
+    if(carte[(int)(Pos.x + Dir.x * vitesse_dep)][(int)(Pos.y)] == 0 ||carte[(int)(Pos.x + Dir.x * vitesse_dep)][(int)(Pos.y)] == 4)
       Pos.x += Dir.x * vitesse_dep;
     //else Pos.x = (int)Pos.x + 0.5;
-    if(carte[(int)(Pos.x)][(int)(Pos.y + Dir.y * vitesse_dep)] == 0)
+    if(carte[(int)(Pos.x)][(int)(Pos.y + Dir.y * vitesse_dep)] == 0 ||carte[(int)(Pos.x)][(int)(Pos.y + Dir.y * vitesse_dep)] == 4)
       Pos.y += Dir.y * vitesse_dep;
     //else Pos.y= (int)Pos.y + 0.5;
   }

@@ -8,6 +8,8 @@ void sdl_quitter();
 int  sdl_touches_appuyee(int touche);
 int  sdl_fin();
 unsigned long sdl_date();
-void sdl_ligne_sprite_texture(int x, int y ,int floorTexX,int floorTexY );
-void  sdl_ligne_verticale_texture_sprite(int x, int y ,int texY,int texX );
-
+void sdl_ligne_sprite_texture(int x, int y ,int floorTexX,int floorTexY ,int i);
+void  sdl_ligne_verticale_texture_sprite(int x, int y ,int texY,int texX ,int i );
+void sdl_fantome_mise_a_jour(int i);
+void sdl_fruit_mise_a_jour(int i);
+void sdl_ligne_fantome_texture(int x, int y ,int floorTexX,int floorTexY ,int i);

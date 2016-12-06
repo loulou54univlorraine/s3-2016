@@ -4,13 +4,14 @@
 #include "constantes.h"
 #include "fichiers.h"
 
-int chargerNiveau(int niveau[][NB_BLOCS_HAUTEUR])
-{
+int chargerNiveau(int niveau , int carte[][NB_BLOCS_HAUTEUR])
+{   char chaine[100];
+    sprintf(chaine, "niveaux.lvl%d",niveau);
     FILE* fichier = NULL;
     char ligneFichier[NB_BLOCS_LARGEUR * NB_BLOCS_HAUTEUR + 1] = {0};
     int i = 0, j = 0;
 
-    fichier = fopen("niveaux.lvl", "r");
+    fichier = fopen(chaine, "r");
     if (fichier == NULL)
         return 0;
 
@@ -23,19 +24,22 @@ int chargerNiveau(int niveau[][NB_BLOCS_HAUTEUR])
             switch (ligneFichier[(i * NB_BLOCS_LARGEUR) + j])
             {
                 case '0':
-                    niveau[j][i] = 0;
+                    carte[j][i] = 0;
                     break;
                 case '1':
-                    niveau[j][i] = 1;
+                    carte[j][i] = 1;
                     break;
                 case '2':
-                    niveau[j][i] = 2;
+                    carte[j][i] = 2;
                     break;
                 case '3':
-                    niveau[j][i] = 3;
+                    carte[j][i] = 3;
                     break;
                 case '4':
-                    niveau[j][i] = 4;
+                    carte[j][i] = 4;
+                    break;
+                    case '5':
+                    carte[j][i] = 5;
                     break;
             }
         }
@@ -45,7 +49,7 @@ int chargerNiveau(int niveau[][NB_BLOCS_HAUTEUR])
     return 1;
 }
 
-int sauvegarderNiveau(int niveau[][NB_BLOCS_HAUTEUR])
+int sauvegarderNiveau(int carte[][NB_BLOCS_HAUTEUR])
 {
     FILE* fichier = NULL;
     int i = 0, j = 0;
@@ -58,7 +62,7 @@ int sauvegarderNiveau(int niveau[][NB_BLOCS_HAUTEUR])
     {
         for (j = 0 ; j < NB_BLOCS_HAUTEUR ; j++)
         {
-            fprintf(fichier, "%d", niveau[j][i]);
+            fprintf(fichier, "%d", carte[j][i]);
         }
     }
 
