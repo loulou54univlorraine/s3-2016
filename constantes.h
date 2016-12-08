@@ -22,17 +22,17 @@ typedef struct CoordonneesReel CoordonneesReel;
 struct CoordonneesReel
 
 {
-    double x; // Abscisses
-    double y; // Ordonnées
-    int texture;
+  double x; // Abscisses
+  double y; // Ordonnées
+  int texture;
 };
 
 typedef struct Coordonnees Coordonnees;
 struct Coordonnees
 
 {
-    int x; // Abscisses
-    int y; // Ordonnées
+  int x; // Abscisses
+  int y; // Ordonnées
 };
 
 typedef struct Sprite
@@ -40,6 +40,7 @@ typedef struct Sprite
   double x;
   double y;
   int texture;
+  int visible;
 }Sprite;
 
 struct couleur {
@@ -48,5 +49,10 @@ struct couleur {
   int bleu;
 };
 
+typedef struct score {
+  int vie;
+  int score;
+  int niveau;
+}Score;
 
 #endif

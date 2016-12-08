@@ -1,3 +1,15 @@
+
+void upVie();
+void mise_a_jour_vie();
+void upScore(int i);
+void upNiveau();
+void downVie();
+int getniveau();
+int getVie();
+void charger_mur();
+void charger_fruit();
+void charger_sol_et_ciel();
+void charger_fantome();
 void sdl_ecran_init(int largeur, int hauteur);
 void sdl_ligne_verticale(int x, int y1, int y2, int r, int v, int b);
 void sdl_ligne_verticale_texture(int x, int y,int texX,int texY,int type_cote , int i);
@@ -9,7 +21,7 @@ int  sdl_touches_appuyee(int touche);
 int  sdl_fin();
 unsigned long sdl_date();
 void sdl_ligne_sprite_texture(int x, int y ,int floorTexX,int floorTexY ,int i);
-void  sdl_ligne_verticale_texture_sprite(int x, int y ,int texY,int texX ,int i );
+void sdl_ligne_verticale_texture_sprite(int x, int y ,int texY,int texX ,int i );
 void sdl_fantome_mise_a_jour(int i);
 void sdl_fruit_mise_a_jour(int i);
 void sdl_ligne_fantome_texture(int x, int y ,int floorTexX,int floorTexY ,int i);
