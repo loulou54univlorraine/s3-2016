@@ -8,6 +8,8 @@
 #include "moteur.h"
 #include "sdl.h"
 #include "constantes.h"
+#define SCREEN_WIDTH_M  600
+#define SCREEN_HEIGHT_M 480
 // init 
 SDL_Surface* ecran ,* mur[4]={NULL},* fruit[7]={NULL},*sol[2]={NULL},* ciel={NULL},* fantome={NULL}, *texte = NULL,*texte2 = NULL;
 SDL_Surface *surface[10] = {NULL};
@@ -25,6 +27,44 @@ Score score={3,0,1};
 int bool1 = 0;
 int bool2 = 0;
 int cmp;
+
+void menu(){
+        SDL_Surface *ecran = NULL; ///Initialise un écran sur lequel toutes les surfaces seront positionnées
+        SDL_Surface *menu = NULL; ///Initialise la surface qui servira de menu
+        SDL_Event touche; ///Initialise un évnènement qui servira à récupérer la saisie au clavier
+        int compteur = 1; ///Booléen pour la boucle
+        /*Crée la position du menu sur l'écran*/
+        SDL_Rect MENU;
+        MENU.x = 0;
+        MENU.y = 0;
+        SDL_Init(SDL_INIT_VIDEO); ///Initialise la SDL
+        ecran = SDL_SetVideoMode(SCREEN_WIDTH_M, SCREEN_HEIGHT_M, 0, 0); ///Initialise la SDL
+        menu = SDL_LoadBMP("menu.bmp"); ///Mets l'image du menu sur la surface menu
+        SDL_BlitSurface(menu, NULL, ecran, &MENU); ///Colle le menu sur l'écran
+        SDL_Flip(ecran); ///Actualise l'écran
+        while(compteur)
+        {
+            SDL_WaitEvent(&touche); ///Attendre que l'on appuie sur une touche
+            switch(touche.type)
+            {
+            case SDL_QUIT:
+                compteur++;
+                break;
+            case SDL_KEYDOWN: ///Si une touche a été appuyée
+                switch(touche.key.keysym.sym)
+                {
+                case SDLK_SPACE: ///Si la touche appuyée est espace
+                    compteur=0;
+                    SDL_FreeSurface(ecran);
+                    break;
+                case SDLK_ESCAPE:
+                    compteur=0;
+                    exit(EXIT_SUCCESS);
+                }
+                break;
+            }
+	}
+}
 
 SDL_Surface* Charger(const char* fic)
 {
@@ -254,7 +294,7 @@ void sdl_ecran_mise_a_jour(int nbframe) {
   positiontexte.y = 420;
   positiontexte2.x = 100;
   positiontexte2.y = 150;
-  sprintf(chaineTexte, "Niveau %d Sore %d Vie %d !",score.niveau,score.score,score.vie);
+  sprintf(chaineTexte, "Niveau %d Score %d Vie %d !",score.niveau,score.score,score.vie);
   texte = TTF_RenderText_Blended(police,chaineTexte, couleurTexte);
   if (bool2)
     {

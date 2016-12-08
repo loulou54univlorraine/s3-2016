@@ -8,6 +8,7 @@
 #include "sdl.h"
 int numfantome = 3;
 int main() {
+  menu();
   int x;
   int i ,j, tmp ,tmp2;
   double date_actuelle = 0,

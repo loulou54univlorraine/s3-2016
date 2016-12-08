@@ -1,4 +1,4 @@
-
+void menu();
 void upVie();
 void mise_a_jour_vie();
 void upScore(int i);
