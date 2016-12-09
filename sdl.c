@@ -56,6 +56,7 @@ void menu(){
                 case SDLK_SPACE: ///Si la touche appuyée est espace
                     compteur=0;
                     SDL_FreeSurface(ecran);
+		    SDL_FreeSurface(menu);
                     break;
                 case SDLK_ESCAPE:
                     compteur=0;
